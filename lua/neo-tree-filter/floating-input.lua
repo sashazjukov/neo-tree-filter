@@ -6,12 +6,14 @@ M.open = function(opts)
   local on_close = opts.on_close or function() end
   local default_text = opts.default_text or ''
 
-  local input = require('neo-tree.ui.inputs')
-  input(default_text, 'Filter: ', function(value)
-    on_submit(value)
-  end, function()
-    on_close()
-  end)
+  local inputs = require('neo-tree.ui.inputs')
+  inputs.input('Filter: ', default_text, function(value)
+    if value and value ~= '' then
+      on_submit(value)
+    else
+      on_close()
+    end
+  end, nil, nil)
 end
 
 M.close = function()
