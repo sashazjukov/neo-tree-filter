@@ -67,12 +67,10 @@ local function scan_directory(root, pattern, search_content)
 end
 
 M.filter_by_filename = function(root, pattern)
-  vim.notify('Filtering by filename: ' .. pattern .. ' in ' .. root, vim.log.levels.INFO)
   return scan_directory(root, pattern, false)
 end
 
 M.filter_by_content = function(root, pattern)
-  vim.notify('Filtering by content: ' .. pattern .. ' in ' .. root, vim.log.levels.INFO)
   return scan_directory(root, pattern, true)
 end
 
