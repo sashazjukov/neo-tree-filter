@@ -8,11 +8,20 @@ local function get_state(tabid)
 end
 
 function M.setup(config, global_config)
+  vim.notify("neo-tree-filter source setup called", vim.log.levels.DEBUG)
 end
 
 function M.navigate(state, path, path_to_reveal, callback, async)
-  local renderer = require("neo-tree.ui.renderer")
-  local manager = require("neo-tree.sources.manager")
+  local ok, renderer = pcall(require, "neo-tree.ui.renderer")
+  if not ok then
+    vim.notify("Failed to load neo-tree.ui.renderer: " .. renderer, vim.log.levels.ERROR)
+    return
+  end
+  local ok2, manager = pcall(require, "neo-tree.sources.manager")
+  if not ok2 then
+    vim.notify("Failed to load neo-tree.sources.manager: " .. manager, vim.log.levels.ERROR)
+    return
+  end
 
   local scan_path = path
   if not scan_path then
