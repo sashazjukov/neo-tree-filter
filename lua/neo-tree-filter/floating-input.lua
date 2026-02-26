@@ -24,9 +24,7 @@ M.open = function(opts)
         prompt = " ",
         default_value = default_text,
         on_submit = function(value)
-            if value and value ~= '' then
-                on_submit(value, filter_type)
-            end
+            -- Don't close the input, just submit
         end,
         on_close = function()
             -- current_input = nil
@@ -34,12 +32,23 @@ M.open = function(opts)
         end,
     })
 
+    input:map("i", "<Enter>", function()
+        local lines = vim.api.nvim_buf_get_lines(input.bufnr, 0, -1, false)
+        local raw = lines[1] or ''
+        local value = (raw:match("^.+: (.*)$") or raw):gsub("^%s+", "")
+        vim.notify("Enter pressed, value: '" .. value .. "'", vim.log.levels.INFO)
+        if value and value ~= '' then
+            local new_type = "filename"
+            on_submit(value, new_type)
+        end
+    end, { noremap = true })
+
     input:map("i", "<F12>", function()
         local lines = vim.api.nvim_buf_get_lines(input.bufnr, 0, -1, false)
         local raw = lines[1] or ''
         local value = raw:match("^.+: (.*)$") or raw
         if value and value ~= '' then
-            local new_type = filter_type == "filename" and "content" or "filename"
+            local new_type = "content"
             on_submit(value, new_type)
         end
     end, { noremap = true })

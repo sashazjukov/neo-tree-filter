@@ -2,7 +2,7 @@ local M = {}
 
 local function scan_directory(root, pattern, search_content)
   local results = {}
-  local ok, regex = pcall(vim.regex, pattern)
+  local ok, regex = pcall(vim.regex, pattern .. '\\c')
   if not ok then
     vim.notify('Invalid regex pattern: ' .. pattern, vim.log.levels.ERROR)
     return results
