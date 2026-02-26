@@ -12,9 +12,12 @@ M.open = function(opts)
   local default_text = opts.default_text or ''
   local filter_type = opts.filter_type or "filename"
 
+  local winid = vim.api.nvim_get_current_win()
+  local height = vim.api.nvim_win_get_height(winid)
+
   local popup_options = popups.popup_options("Filter (" .. filter_type .. "): ", 40, {
     relative = "win",
-    position = { row = -1, col = 0 },
+    position = { row = height - 2, col = 0 },
   })
 
   local input = NuiInput(popup_options, {
