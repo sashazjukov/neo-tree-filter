@@ -18,6 +18,9 @@ end
 
 M.navigate = function(state, path)
   if path == nil then
+    path = state.path
+  end
+  if path == nil then
     path = vim.fn.getcwd()
   end
   state.path = path

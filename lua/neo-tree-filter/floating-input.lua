@@ -35,7 +35,9 @@ M.open = function(opts)
   })
 
   input:map("i", "<F12>", function()
-    local value = input:get_value()
+    local lines = vim.api.nvim_buf_get_lines(input.bufnr, 0, -1, false)
+    local raw = lines[1] or ''
+    local value = raw:match("^.+: (.*)$") or raw
     current_input = nil
     if value and value ~= '' then
       local new_type = filter_type == "filename" and "content" or "filename"
