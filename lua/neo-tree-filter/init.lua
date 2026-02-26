@@ -5,64 +5,83 @@ local events = require("neo-tree.events")
 local utils = require("neo-tree.utils")
 
 local M = {
-  name = "neo-tree-filter",
-  display_name = " Filter ",
+    name = "neo-tree-filter",
+    display_name = " Filter ",
 }
 
 local filter = require("neo-tree-filter.filter")
 local floating_input = require("neo-tree-filter.floating-input")
 
-local function refresh_source()
-  manager.refresh("neo-tree-filter")
-end
+local previous_win = nil
 
 M.navigate = function(state, path)
-  if path == nil then
-    path = state.path
-  end
-  if path == nil then
-    path = vim.fn.getcwd()
-  end
-  state.path = path
+    local is_new_navigation = (path == nil)
 
-  local filter_pattern = state.filter_pattern or ""
-  local filter_type = state.filter_type or "filename"
+    if path == nil then
+        path = state.path
+    end
+    if path == nil then
+        path = vim.fn.getcwd()
+    end
+    state.path = path
 
-  local items
+    local filter_pattern = state.filter_pattern or ""
+    local filter_type = state.filter_type or "filename"
 
-  if filter_pattern == "" then
-    items = {
-      {
-        id = "placeholder",
-        name = "Press Enter to type regex filter",
-        type = "message",
-      }
-    }
-    vim.defer_fn(function()
-      M.open_filter_input(state, "filename")
-    end, 100)
-  elseif filter_type == "filename" then
-    items = filter.filter_by_filename(path, filter_pattern)
-  else
-    items = filter.filter_by_content(path, filter_pattern)
-  end
+    local items
 
-  renderer.show_nodes(items, state)
+    if is_new_navigation then
+        state.filter_pattern = ""
+        state.filter_type = "filename"
+        filter_pattern = ""
+        items = {
+            {
+                id = "placeholder",
+                name = "Press Enter to type regex filter",
+                type = "message",
+            }
+        }
+        vim.defer_fn(function()
+            M.open_filter_input(state, "filename")
+        end, 100)
+    elseif filter_pattern == "" then
+        items = {
+            {
+                id = "placeholder",
+                name = "Press Enter to type regex filter",
+                type = "message",
+            }
+        }
+        vim.defer_fn(function()
+            M.open_filter_input(state, "filename")
+        end, 100)
+    elseif filter_type == "filename" then
+        items = filter.filter_by_filename(path, filter_pattern)
+    else
+        items = filter.filter_by_content(path, filter_pattern)
+    end
+
+    renderer.show_nodes(items, state)
+
+    if previous_win and vim.api.nvim_win_is_valid(previous_win) then
+        vim.api.nvim_set_current_win(previous_win)
+    end
 end
 
 M.open_filter_input = function(state, filter_type)
-  filter_type = filter_type or "filename"
-  floating_input.open({
-    default_text = state.filter_pattern or "",
-    filter_type = filter_type,
-    on_submit = function(value, type)
-      state.filter_pattern = value
-      state.filter_type = type
-      M.navigate(state)
-    end,
-    on_close = function()
-    end,
-  })
+    previous_win = vim.api.nvim_get_current_win()
+    filter_type = filter_type or "filename"
+    floating_input.open({
+        default_text = state.filter_pattern or "",
+        filter_type = filter_type,
+        on_submit = function(value, type)
+            state.filter_pattern = value
+            state.filter_type = type
+            M.navigate(state, state.path)
+        end,
+        on_close = function()
+        end,
+    })
 end
 
 M.setup = function(config, global_config)
