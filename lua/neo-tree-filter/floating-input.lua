@@ -13,19 +13,16 @@ M.open = function(opts)
   local filter_type = opts.filter_type or "filename"
 
   local popup_options = popups.popup_options("Filter (" .. filter_type .. "): ", 40, {
-    relative = "cursor",
-    position = { row = 1, col = 0 },
+    relative = "win",
+    position = { row = -1, col = 0 },
   })
 
   local input = NuiInput(popup_options, {
     prompt = " ",
     default_value = default_text,
     on_submit = function(value)
-      current_input = nil
       if value and value ~= '' then
         on_submit(value, filter_type)
-      else
-        on_close()
       end
     end,
     on_close = function()
@@ -38,7 +35,6 @@ M.open = function(opts)
     local lines = vim.api.nvim_buf_get_lines(input.bufnr, 0, -1, false)
     local raw = lines[1] or ''
     local value = raw:match("^.+: (.*)$") or raw
-    current_input = nil
     if value and value ~= '' then
       local new_type = filter_type == "filename" and "content" or "filename"
       on_submit(value, new_type)
