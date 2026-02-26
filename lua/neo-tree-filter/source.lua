@@ -1,83 +1,46 @@
-local M = {}
-
-local state = {
-  cwd = vim.fn.getcwd(),
-  filter_pattern = '',
-  filter_type = 'filename',
+local M = {
+  name = "neo-tree-filter",
+  display_name = " Filter ",
 }
 
-M.setup = function(opts)
-  state.cwd = opts.cwd or vim.fn.getcwd()
+local function get_state(tabid)
+  return require("neo-tree.sources.manager").get_state(M.name, tabid)
 end
 
-M.get_state = function()
-  return state
+function M.setup(config, global_config)
 end
 
-M.get_items = function(state_obj)
-  state_obj = state_obj or state
+function M.navigate(state, path, path_to_reveal, callback, async)
+  local renderer = require("neo-tree.ui.renderer")
+  local manager = require("neo-tree.sources.manager")
 
-  if state_obj.filter_pattern == '' then
-    return {
+  local scan_path = path
+  if not scan_path then
+    scan_path = state.path or manager.get_cwd(state)
+  end
+  state.path = scan_path
+
+  local filter_pattern = state.filter_pattern or ""
+  local filter_type = state.filter_type or "filename"
+
+  local filter = require("neo-tree-filter.filter")
+  local items
+
+  if filter_pattern == "" then
+    items = {
       {
-        id = 'placeholder',
-        name = 'No filter - type a regex pattern',
-        type = 'message',
-      },
-    }, { needs_refresh = false }
-  end
-
-  local root = state_obj.cwd
-  local pattern = state_obj.filter_pattern
-
-  if state_obj.filter_type == 'filename' then
-    local filter = require('neo-tree-filter.filter')
-    local results = filter.filter_by_filename(root, pattern)
-    return results, { needs_refresh = false }
+        id = "placeholder",
+        name = "No filter - open input to type regex",
+        type = "message",
+      }
+    }
+  elseif filter_type == "filename" then
+    items = filter.filter_by_filename(scan_path, filter_pattern)
   else
-    local filter = require('neo-tree-filter.filter')
-    local results = filter.filter_by_content(root, pattern)
-    return results, { needs_refresh = false }
+    items = filter.filter_by_content(scan_path, filter_pattern)
   end
-end
 
-M.navigate = function(state_obj)
-  state_obj = state_obj or state
-  return M.get_items(state_obj)
-end
-
-M.execute = function(state_obj, node)
-  if node.type == 'file' then
-    vim.cmd('edit ' .. node.path)
-  end
-end
-
-M.refresh = function(state_obj)
-  return M.get_items(state_obj)
-end
-
-M.show_in_filemanager = function(node)
-  vim.fn['netrw#BrowseX'](node.path, 0)
-end
-
-M.get_name = function()
-  return 'neo-tree-filter'
-end
-
-M.get_component_configs = function()
-  return {}
-end
-
-M.filter_by_filename = function(pattern)
-  state.filter_pattern = pattern
-  state.filter_type = 'filename'
-  require('neo-tree').refresh({ source = 'neo-tree-filter' })
-end
-
-M.filter_by_content = function(pattern)
-  state.filter_pattern = pattern
-  state.filter_type = 'content'
-  require('neo-tree').refresh({ source = 'neo-tree-filter' })
+  renderer.show_nodes(items, state)
 end
 
 return M
