@@ -36,7 +36,7 @@ M.navigate = function(state, path)
       }
     }
     vim.defer_fn(function()
-      M.open_filter_input(state)
+      M.open_filter_input(state, "filename")
     end, 100)
   elseif filter_type == "filename" then
     items = filter.filter_by_filename(path, filter_pattern)
@@ -47,12 +47,14 @@ M.navigate = function(state, path)
   renderer.show_nodes(items, state)
 end
 
-M.open_filter_input = function(state)
+M.open_filter_input = function(state, filter_type)
+  filter_type = filter_type or "filename"
   floating_input.open({
     default_text = state.filter_pattern or "",
-    on_submit = function(value)
+    filter_type = filter_type,
+    on_submit = function(value, type)
       state.filter_pattern = value
-      state.filter_type = "filename"
+      state.filter_type = type
       M.navigate(state)
     end,
     on_close = function()
