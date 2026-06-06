@@ -38,29 +38,22 @@ M.icon = function(config, node, state)
 end
 
 M.name = function(config, node, state)
+	if node.extra and node.extra.name_highlights then
+		local result = {}
+		for _, segment in ipairs(node.extra.name_highlights) do
+			table.insert(result, {
+				text = segment.text,
+				highlight = segment.highlight,
+			})
+		end
+		return result
+	end
 	local highlight = config.highlight or highlights.FILE_NAME
 	if node.type == "directory" then
 		highlight = highlights.DIRECTORY_NAME
 	end
 	if node:get_depth() == 1 then
 		highlight = highlights.ROOT_NAME
-	end
-	if node.id and node.id:find("^__filter__:") then
-		local prefix_end = node.name:find(": ")
-		if prefix_end then
-			return {
-				{ text = node.name:sub(1, prefix_end), highlight = highlight },
-				{ text = node.name:sub(prefix_end + 2), highlight = highlights.FILTER_TERM },
-			}
-		end
-	end
-	local count_text = node.name:match("%s+%(%d+%)$")
-	if count_text then
-		local name_part = node.name:sub(1, -(#count_text + 1))
-		return {
-			{ text = name_part, highlight = highlight },
-			{ text = count_text, highlight = highlights.FILTER_TERM },
-		}
 	end
 	return {
 		text = node.name,

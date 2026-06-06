@@ -1,3 +1,5 @@
+local highlights = require("neo-tree.ui.highlights")
+
 local M = {}
 
 local function build_node_tree(root, items)
@@ -21,15 +23,21 @@ local function build_node_tree(root, items)
 
 			for i, path in ipairs(parts) do
 				if not nodes_by_path[path] then
-					local name = vim.fn.fnamemodify(path, ":t")
+					local fname = vim.fn.fnamemodify(path, ":t")
 					local is_file = i == #parts
 					nodes_by_path[path] = {
 						id = path,
-						name = is_file and count and (name .. " (" .. count .. ")") or name,
+						name = fname,
 						path = path,
 						type = is_file and "file" or "directory",
 						children = is_file and nil or {},
 						_is_expanded = not is_file,
+						extra = is_file and count and {
+							name_highlights = {
+								{ text = fname, highlight = highlights.FILE_NAME },
+								{ text = " " .. count .. "", highlight = highlights.FILTER_TERM },
+							},
+						} or nil,
 					}
 				end
 			end
@@ -114,6 +122,13 @@ local function scan_directory(root, pattern, search_content)
 			type = "directory",
 			children = items,
 			_is_expanded = true,
+			extra = {
+				name_highlights = {
+					{ text = prefix .. " ( ", highlight = highlights.ROOT_NAME },
+					{ text = pattern, highlight = highlights.FILTER_TERM },
+					{ text = " )", highlight = highlights.ROOT_NAME },
+				},
+			},
 		},
 	}
 end
