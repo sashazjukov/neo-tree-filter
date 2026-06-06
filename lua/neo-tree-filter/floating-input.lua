@@ -20,6 +20,7 @@ M.open = function(opts)
 	local popup_options = popups.popup_options("Filter (" .. filter_type .. "): ", 40, {
 		relative = "win",
 		position = { row = height - 2, col = 0 },
+		size = 80,
 	})
 
 	local input = NuiInput(popup_options, {
