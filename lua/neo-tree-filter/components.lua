@@ -44,15 +44,6 @@ M.name = function(config, node, state)
 	end
 	if node:get_depth() == 1 then
 		highlight = highlights.ROOT_NAME
-		local pattern = state.filter_pattern or ""
-		if pattern ~= "" then
-			local prefix = state.filter_type == "content" and "c" or "f"
-			return {
-				{ text = node.name .. "  (", highlight = highlight },
-				{ text = prefix .. ": " .. pattern, highlight = highlights.FILTER_TERM },
-				{ text = ")", highlight = highlight },
-			}
-		end
 	end
 	local count_text = node.name:match("%s+%(%d+%)$")
 	if count_text then

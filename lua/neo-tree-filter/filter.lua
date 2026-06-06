@@ -103,7 +103,17 @@ local function scan_directory(root, pattern, search_content)
 		end
 	end
 
-	return build_node_tree(root, matched_files)
+	local items = build_node_tree(root, matched_files)
+	local prefix = search_content and "c" or "f"
+	return {
+		{
+			id = "__filter__:" .. root .. ":" .. pattern,
+			name = prefix .. ": " .. pattern,
+			path = root,
+			type = "directory",
+			children = items,
+		},
+	}
 end
 
 M.filter_by_filename = function(root, pattern)
