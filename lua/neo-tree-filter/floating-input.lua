@@ -49,6 +49,7 @@ M.open = function(opts)
 		if value ~= "" then
 			on_submit(value, "filename")
 			refocus()
+			input:unmount()
 		end
 	end
 
@@ -58,6 +59,7 @@ M.open = function(opts)
 		if value ~= "" then
 			on_submit(value, "content")
 			refocus()
+			input:unmount()
 		end
 	end
 
