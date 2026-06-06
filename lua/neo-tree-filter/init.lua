@@ -63,6 +63,10 @@ M.navigate = function(state, path)
 
 	renderer.show_nodes(items, state)
 
+	vim.keymap.set("n", "f", function()
+		M.open_filter_input(state)
+	end, { buffer = state.tree.bufnr, noremap = true, desc = "show filter input" })
+
 	if previous_win and vim.api.nvim_win_is_valid(previous_win) then
 		vim.api.nvim_set_current_win(previous_win)
 	end
@@ -99,6 +103,21 @@ M.open_and_search = function(state)
 end
 
 M.setup = function(config, global_config)
+	vim.keymap.set("n", "<F12>ff", function()
+		local word = vim.fn.expand("<cword>")
+		if word == "" then
+			return
+		end
+
+		require("neo-tree.command").execute({ source = M.name })
+
+		local state = manager.get_state(M.name)
+		if state then
+			state.filter_pattern = word
+			M.open_filter_input(state)
+		end
+	end, { desc = "Filter neo-tree with word under cursor" })
+
 	-- Subscribe to file open event
 	manager.subscribe(M.name, {
 		event = events.FILE_OPENED,
