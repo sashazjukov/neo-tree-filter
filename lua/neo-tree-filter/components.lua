@@ -54,6 +54,14 @@ M.name = function(config, node, state)
 			}
 		end
 	end
+	local count_text = node.name:match("%s+%(%d+%)$")
+	if count_text then
+		local name_part = node.name:sub(1, -(#count_text + 1))
+		return {
+			{ text = name_part, highlight = highlight },
+			{ text = count_text, highlight = highlights.FILTER_TERM },
+		}
+	end
 	return {
 		text = node.name,
 		highlight = highlight,
