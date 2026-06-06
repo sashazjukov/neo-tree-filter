@@ -105,9 +105,9 @@ end
 M.setup = function(config, global_config)
 	vim.keymap.set("n", "<F12>ff", function()
 		local word = vim.fn.expand("<cword>")
-		if word == "" then
-			return
-		end
+		-- if word == "" then
+		-- 	return
+		-- end
 
 		require("neo-tree.command").execute({ source = M.name })
 
