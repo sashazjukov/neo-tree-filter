@@ -1,9 +1,12 @@
 local M = {}
 
-local function build_node_tree(root, filepaths)
+local function build_node_tree(root, items)
   local nodes_by_path = {}
 
-  for _, filepath in ipairs(filepaths) do
+  for _, item in ipairs(items) do
+    local filepath = type(item) == "table" and item.path or item
+    local count = type(item) == "table" and item.count or nil
+
     if filepath ~= "" then
       local parts = {}
       local p = filepath
@@ -16,12 +19,14 @@ local function build_node_tree(root, filepaths)
 
       for i, path in ipairs(parts) do
         if not nodes_by_path[path] then
+          local name = vim.fn.fnamemodify(path, ":t")
+          local is_file = i == #parts
           nodes_by_path[path] = {
             id = path,
-            name = vim.fn.fnamemodify(path, ":t"),
+            name = is_file and count and (name .. " (" .. count .. ")") or name,
             path = path,
-            type = i == #parts and "file" or "directory",
-            children = (i ~= #parts) and {} or nil,
+            type = is_file and "file" or "directory",
+            children = is_file and nil or {},
           }
         end
       end
@@ -61,13 +66,18 @@ local function scan_directory(root, pattern, search_content)
   local matched_files = {}
 
   if search_content then
-    local output = vim.fn.systemlist({ "rg", "-il", "--", pattern, root })
+    local output = vim.fn.systemlist({ "rg", "-c", "--", pattern, root })
     if vim.v.shell_error ~= 0 and vim.v.shell_error ~= 1 then
       return {}
     end
-    for _, filepath in ipairs(output) do
-      if filepath ~= "" then
-        table.insert(matched_files, filepath)
+    for _, line in ipairs(output) do
+      if line ~= "" then
+        local colon_pos = line:find(":%d+$")
+        if colon_pos then
+          local filepath = line:sub(1, colon_pos - 1)
+          local count = tonumber(line:sub(colon_pos + 1))
+          table.insert(matched_files, { path = filepath, count = count })
+        end
       end
     end
   else
