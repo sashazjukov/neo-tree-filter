@@ -39,9 +39,13 @@ M.open = function(opts)
 		end
 	end
 
+	local function trim(s)
+		return s:match("^%s*(.-)%s*$")
+	end
+
 	local function submit_filename()
 		local lines = vim.api.nvim_buf_get_lines(input.bufnr, 0, -1, false)
-		local value = (lines[1] or ""):gsub("^%s+", "")
+		local value = trim(lines[1] or "")
 		if value ~= "" then
 			on_submit(value, "filename")
 			refocus()
@@ -50,7 +54,7 @@ M.open = function(opts)
 
 	local function submit_content()
 		local lines = vim.api.nvim_buf_get_lines(input.bufnr, 0, -1, false)
-		local value = (lines[1] or ""):gsub("^%s+", "")
+		local value = trim(lines[1] or "")
 		if value ~= "" then
 			on_submit(value, "content")
 			refocus()
