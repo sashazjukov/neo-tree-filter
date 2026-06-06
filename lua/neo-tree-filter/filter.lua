@@ -29,6 +29,7 @@ local function build_node_tree(root, items)
 						path = path,
 						type = is_file and "file" or "directory",
 						children = is_file and nil or {},
+						_is_expanded = not is_file,
 					}
 				end
 			end
@@ -112,6 +113,7 @@ local function scan_directory(root, pattern, search_content)
 			path = root,
 			type = "directory",
 			children = items,
+			_is_expanded = true,
 		},
 	}
 end
