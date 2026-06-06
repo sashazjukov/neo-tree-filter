@@ -10,6 +10,10 @@ M.open_filter = function(state)
   source.open_filter_input(state)
 end
 
+M.open_and_search = function(state)
+  source.open_and_search(state)
+end
+
 M.refresh = function(state)
   manager.refresh("neo-tree-filter", state)
 end
