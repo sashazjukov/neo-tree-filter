@@ -14,6 +14,15 @@ local floating_input = require("neo-tree-filter.floating-input")
 
 local previous_win = nil
 
+local function rg_to_vim_pattern(pattern)
+	pattern = pattern:gsub("%*%?", "\\{-}")
+	pattern = pattern:gsub("([^*])%?", "%1\\=")
+	pattern = pattern:gsub("^%?", "\\=")
+	pattern = pattern:gsub("\\b(%w)", "\\<%1")
+	pattern = pattern:gsub("(%w)\\b", "%1\\>")
+	return pattern
+end
+
 M.navigate = function(state, path)
 	local is_new_navigation = (path == nil)
 
@@ -98,7 +107,7 @@ M.open_and_search = function(state)
 	vim.cmd("edit " .. path)
 
 	if filter_type == "content" and filter_pattern ~= "" then
-		vim.cmd("/" .. filter_pattern)
+		vim.cmd("/" .. rg_to_vim_pattern(filter_pattern))
 	end
 end
 
@@ -124,7 +133,7 @@ M.setup = function(config, global_config)
 		handler = function(args)
 			local state = manager.get_state(M.name)
 			if state and state.filter_type == "content" and state.filter_pattern then
-				vim.cmd("/" .. state.filter_pattern)
+				vim.cmd("/" .. rg_to_vim_pattern(state.filter_pattern))
 			end
 		end,
 	})

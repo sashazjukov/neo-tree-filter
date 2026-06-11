@@ -53,6 +53,15 @@ M.open = function(opts)
 		end
 	end
 
+	local function rg_to_vim_pattern(pattern)
+		pattern = pattern:gsub("%*%?", "\\{-}")
+		pattern = pattern:gsub("([^*])%?", "%1\\=")
+		pattern = pattern:gsub("^%?", "\\=")
+		pattern = pattern:gsub("\\b(%w)", "\\<%1")
+		pattern = pattern:gsub("(%w)\\b", "%1\\>")
+		return pattern
+	end
+
 	local function submit_content()
 		local lines = vim.api.nvim_buf_get_lines(input.bufnr, 0, -1, false)
 		local value = trim(lines[1] or "")
@@ -60,6 +69,7 @@ M.open = function(opts)
 			on_submit(value, "content")
 			refocus()
 			input:unmount()
+			vim.cmd("/" .. rg_to_vim_pattern(value))
 		end
 	end
 
