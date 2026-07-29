@@ -15,12 +15,12 @@ local floating_input = require("neo-tree-filter.floating-input")
 local previous_win = nil
 
 local function rg_to_vim_pattern(pattern)
-	pattern = pattern:gsub("%*%?", "\\{-}")
+	pattern = pattern:gsub("%*%?", "{-}")
 	pattern = pattern:gsub("([^*])%?", "%1\\=")
 	pattern = pattern:gsub("^%?", "\\=")
-	pattern = pattern:gsub("\\b(%w)", "\\<%1")
-	pattern = pattern:gsub("(%w)\\b", "%1\\>")
-	return pattern
+	pattern = pattern:gsub("\\b(%w)", "<%1")
+	pattern = pattern:gsub("(%w)\\b", "%1>")
+	return "\\c\\v" .. pattern
 end
 
 M.navigate = function(state, path)
@@ -112,11 +112,33 @@ M.open_and_search = function(state)
 end
 
 M.setup = function(config, global_config)
+	local function get_visual_selection()
+		local start_pos = vim.api.nvim_buf_get_mark(0, "<")
+		local end_pos = vim.api.nvim_buf_get_mark(0, ">")
+		local start_row, start_col = start_pos[1], start_pos[2]
+		local end_row, end_col = end_pos[1], end_pos[2]
+
+		if start_row == 0 or end_row == 0 then
+			return ""
+		end
+
+		local lines = vim.api.nvim_buf_get_lines(0, start_row - 1, end_row, false)
+		if #lines == 0 then
+			return ""
+		end
+
+		if #lines == 1 then
+			lines[1] = lines[1]:sub(start_col, end_col)
+		else
+			lines[1] = lines[1]:sub(start_col)
+			lines[#lines] = lines[#lines]:sub(1, end_col)
+		end
+
+		return table.concat(lines, "\n")
+	end
+
 	vim.keymap.set("n", "<F12>ff", function()
 		local word = vim.fn.expand("<cword>")
-		-- if word == "" then
-		-- 	return
-		-- end
 
 		require("neo-tree.command").execute({ source = M.name })
 
@@ -126,6 +148,23 @@ M.setup = function(config, global_config)
 			M.open_filter_input(state)
 		end
 	end, { desc = "Filter neo-tree with word under cursor" })
+
+	vim.keymap.set("v", "<F12>ff", function()
+		local word = get_visual_selection()
+		vim.cmd("normal! \027")
+
+		if word == "" then
+			return
+		end
+
+		require("neo-tree.command").execute({ source = M.name })
+
+		local state = manager.get_state(M.name)
+		if state then
+			state.filter_pattern = word
+			M.open_filter_input(state)
+		end
+	end, { desc = "Filter neo-tree with visual selection" })
 
 	-- Subscribe to file open event
 	manager.subscribe(M.name, {
