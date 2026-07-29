@@ -128,10 +128,10 @@ M.setup = function(config, global_config)
 		end
 
 		if #lines == 1 then
-			lines[1] = lines[1]:sub(start_col, end_col)
+			lines[1] = lines[1]:sub(start_col + 1, end_col + 1)
 		else
-			lines[1] = lines[1]:sub(start_col)
-			lines[#lines] = lines[#lines]:sub(1, end_col)
+			lines[1] = lines[1]:sub(start_col + 1)
+			lines[#lines] = lines[#lines]:sub(1, end_col + 1)
 		end
 
 		return table.concat(lines, "\n")
@@ -150,8 +150,8 @@ M.setup = function(config, global_config)
 	end, { desc = "Filter neo-tree with word under cursor" })
 
 	vim.keymap.set("v", "<F12>ff", function()
-		local word = get_visual_selection()
 		vim.cmd("normal! \027")
+		local word = get_visual_selection()
 
 		if word == "" then
 			return
