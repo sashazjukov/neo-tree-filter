@@ -37,11 +37,12 @@ M.open = function(opts)
 	local winid = vim.api.nvim_get_current_win()
 	local height = vim.api.nvim_win_get_height(winid)
 
-	local popup_options = popups.popup_options("Filter (" .. filter_type .. "): ", 40, {
-		relative = "win",
-		position = { row = height - 2, col = 0 },
-		size = 80,
-	})
+	local popup_options =
+		popups.popup_options("Enter filter pattern. Enter - filter by file names. F12 - By file content): ", 40, {
+			relative = "win",
+			position = { row = height - 2, col = 0 },
+			size = 80,
+		})
 
 	local input_prompt = " "
 
@@ -129,8 +130,18 @@ M.open = function(opts)
 	end, { noremap = true })
 
 	current_input = input
+
+	local parent_win = vim.api.nvim_get_current_win()
+	local parent_cursor = vim.api.nvim_win_get_cursor(parent_win)
+
 	input:mount()
 	vim.cmd("startinsert!")
+
+	vim.schedule(function()
+		if vim.api.nvim_win_is_valid(parent_win) then
+			pcall(vim.api.nvim_win_set_cursor, parent_win, parent_cursor)
+		end
+	end)
 end
 
 M.close = function()
