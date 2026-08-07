@@ -1,6 +1,6 @@
 # Plan: Input Box UI
 
-**Fast Mode** | Created: 2026-02-26
+**Fast Mode** | Created: 2026-02-26 | Status: **Completed**
 
 ## Settings
 
@@ -10,17 +10,20 @@
 
 ## Tasks
 
-- [x] **Create lua/neo-tree-filter/init.lua** — Plugin entry point with setup function and neo-tree integration
-- [x] **Create lua/neo-tree-filter/floating-input.lua** — Custom floating window for regex input using nui.nvim
-- [x] **Create lua/neo-tree-filter/filter.lua** — Regex filtering logic for filename and content search
-- [x] **Create lua/neo-tree-filter/source.lua** — Neo-tree external source definition with state management
+- [x] **Create lua/neo-tree-filter/init.lua** — External source entry point (`name`, `display_name`, `navigate`, `setup`) with keymaps and events
+- [x] **Create lua/neo-tree-filter/floating-input.lua** — Floating regex input using nui.input with history navigation
+- [x] **Create lua/neo-tree-filter/filter.lua** — Regex filtering logic for filename (`rg --files` + `vim.regex`) and content (`rg -ic`) search
+- [x] **Create lua/neo-tree-filter/commands.lua** — Neo-tree command handlers (open_filter, open_and_search, refresh, show_debug_info)
+- [x] **Create lua/neo-tree-filter/components.lua** — Custom renderer components (devicons, name highlights)
+- [x] **Register source with neo-tree** — Added to neo-tree `sources`; discovered via `require("neo-tree-filter")`
 
 ## Notes
 
 This implementation provides:
-- Custom floating input window (not vim.ui.input)
+- Custom floating input window via nui.input (not vim.ui.input)
 - Enter key triggers filename filtering
-- F12 key placeholder for content filtering
+- F12 key triggers content filtering with match counts
+- Search history with Up/Down navigation
 - Integration with neo-tree's external source API
 
 The plugin structure follows standard neovim plugin conventions with lua/neo-tree-filter/ directory.

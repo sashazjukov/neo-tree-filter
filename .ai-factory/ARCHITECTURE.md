@@ -13,25 +13,26 @@ Standard neovim plugin structure following lua/runtime conventions. This is the 
 .
 ├── lua/
 │   └── neo-tree-filter/
-│       ├── init.lua           # Plugin entry point
-│       ├── filter.lua         # Core filtering logic
-│       ├── input.lua           # Input box handling
-│       └── preview.lua         # Preview mode handling
-├── plugin/
-│   └── neo-tree-filter.lua    # Plugin autocmds (optional)
-└── README.md                  # Documentation
+│       ├── init.lua           # External source entry point (navigate, keymaps, events)
+│       ├── filter.lua         # rg-based filename/content filtering + tree building
+│       ├── floating-input.lua # nui.input floating input with history navigation
+│       ├── commands.lua       # Neo-tree command handlers
+│       └── components.lua     # Custom renderer components (icons, name highlights)
+├── readme.md                  # Documentation
+└── TODO.md                    # Project tasks
 ```
 
 ## Dependency Rules
 - Plugin entry point (init.lua) loads modules
-- Core modules (filter, input, preview) can depend on each other
-- No external dependencies except neo-tree API
+- `filter.lua` and `floating-input.lua` are used by `init.lua`; they do not depend on each other
+- External dependencies: neo-tree.nvim API, nui.nvim, `rg` binary (optional nvim-web-devicons)
 
 ## Layer/Module Communication
-- `init.lua` initializes the external source and event handlers
-- `filter.lua` implements regex matching for files
-- `input.lua` manages the input box UI
-- `preview.lua` handles preview mode switching
+- `init.lua` defines the external source (`name`, `display_name`, `navigate`, `setup`) and wires keymaps/events
+- `filter.lua` implements regex matching for files (`filter_by_filename`, `filter_by_content`) and builds the directory tree
+- `floating-input.lua` manages the floating input box UI (nui.input) and submit callbacks
+- `commands.lua` maps neo-tree source commands to source functions
+- `components.lua` overrides renderer components with devicons and highlight support
 
 ## Key Principles
 1. **Lazy loading** - Only load when needed for performance
@@ -41,18 +42,21 @@ Standard neovim plugin structure following lua/runtime conventions. This is the 
 
 ## Code Examples
 
-### Plugin Entry (lua/neo-tree-filter/init.lua)
+### External Source Definition (lua/neo-tree-filter/init.lua)
 ```lua
-local M = {}
+local M = {
+  name = "neo-tree-filter",
+  display_name = " Content Filter ",
+}
 
-function M.setup(opts)
-  -- Register as neo-tree external source
-  require('neo-tree').setup({
-    sources = { 'neo-tree-filter' },
-    default_component_configs = {
-      -- ...
-    }
-  })
+-- Called by neo-tree on source navigation
+M.navigate = function(state, path)
+  -- scan files, build items, render via renderer.show_nodes(items, state)
+end
+
+-- Called by neo-tree when the source is set up
+M.setup = function(config, global_config)
+  -- register keymaps, subscribe to events
 end
 
 return M
@@ -63,26 +67,23 @@ return M
 local M = {}
 
 function M.filter_by_filename(root, pattern)
-  -- Returns list of files matching pattern
+  -- rg --files <root>, match file names with vim.regex
 end
 
 function M.filter_by_content(root, pattern)
-  -- Searches file contents and returns matches
+  -- rg -ic -- <pattern> <root>, parse match counts
 end
 
 return M
 ```
 
-### External Source Definition
+### Registration
+Neo-tree discovers the source by `require("neo-tree-filter")` when the name is listed in neo-tree's `sources` config. No explicit registration call is required:
+
 ```lua
--- Must implement neo-tree's external source interface
-return {
-  name = 'neo-tree-filter',
-  get_items = function(state)
-    -- Return filtered file items
-  end,
-  ...
-}
+require("neo-tree").setup({
+  sources = { "filesystem", "buffers", "git_status", "neo-tree-filter" },
+})
 ```
 
 ## Anti-Patterns
