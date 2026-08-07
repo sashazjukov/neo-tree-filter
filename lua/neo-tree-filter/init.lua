@@ -322,6 +322,40 @@ M.setup = function(config, global_config)
 		end
 	end
 
+	local function find_filter_by_node_id(state, node_id)
+		local best
+		for _, f in ipairs(state.filters) do
+			local prefix = f.id .. "|"
+			if node_id == f.id or node_id:sub(1, #prefix) == prefix then
+				if not best or #prefix > #(best.id .. "|") then
+					best = f
+				end
+			end
+		end
+		return best
+	end
+
+	local function resolve_loclist_for_path(state, path)
+		local selected = nil
+		if state.tree then
+			local ok, node = pcall(function()
+				return state.tree:get_node()
+			end)
+			if ok and node then
+				selected = node
+			end
+		end
+		if selected and selected.path == path then
+			local f = find_filter_by_node_id(state, selected:get_id())
+			if f and f.filter_type == "content" and f.filter_pattern then
+				return f.filter_type, f.filter_pattern
+			end
+		end
+		local node = find_filter_node(state.filters, path)
+		return node and node.filter_type or state.last_filter_type,
+			node and node.filter_pattern or state.last_filter_pattern
+	end
+
 	-- Subscribe to file open event
 	manager.subscribe(M.name, {
 		event = events.FILE_OPENED,
@@ -330,9 +364,7 @@ M.setup = function(config, global_config)
 			if not state then
 				return
 			end
-			local node = find_filter_node(state.filters, args)
-			local filter_type = node and node.filter_type or state.last_filter_type
-			local pattern = node and node.filter_pattern or state.last_filter_pattern
+			local filter_type, pattern = resolve_loclist_for_path(state, args)
 			if filter_type == "content" and pattern then
 				set_loclist_for_match(args, pattern)
 				open_loclist_window()
@@ -349,7 +381,7 @@ M.setup = function(config, global_config)
 		desc = "refresh locallist matches for the buffer being entered",
 		callback = function()
 			local state = manager.get_state(M.name)
-			if not state or state.last_filter_type ~= "content" or not state.last_filter_pattern then
+			if not state then
 				return
 			end
 			if vim.bo.buftype ~= "" then
@@ -362,8 +394,11 @@ M.setup = function(config, global_config)
 			if not loclist_window_open() then
 				return
 			end
+			local filter_type, pattern = resolve_loclist_for_path(state, path)
+			if filter_type ~= "content" or not pattern then
+				return
+			end
 			local winid = vim.api.nvim_get_current_win()
-			local pattern = state.last_filter_pattern
 			vim.schedule(function()
 				if not vim.api.nvim_win_is_valid(winid) then
 					return
