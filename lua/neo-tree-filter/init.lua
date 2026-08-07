@@ -253,13 +253,42 @@ M.setup = function(config, global_config)
 		end
 	end, { desc = "Remove current filter node" })
 
+	local function find_node_by_path(node, path)
+		if node.path == path then
+			return node
+		end
+		if node.children then
+			for _, child in ipairs(node.children) do
+				local found = find_node_by_path(child, path)
+				if found then
+					return found
+				end
+			end
+		end
+	end
+
+	local function find_filter_node(filters, path)
+		for _, f in ipairs(filters) do
+			local found = find_node_by_path(f, path)
+			if found then
+				return found
+			end
+		end
+	end
+
 	-- Subscribe to file open event
 	manager.subscribe(M.name, {
 		event = events.FILE_OPENED,
 		handler = function(args)
 			local state = manager.get_state(M.name)
-			if state and state.last_filter_type == "content" and state.last_filter_pattern then
-				vim.cmd("/" .. rg_to_vim_pattern(state.last_filter_pattern))
+			if not state then
+				return
+			end
+			local node = find_filter_node(state.filters, args)
+			local filter_type = node and node.filter_type or state.last_filter_type
+			local pattern = node and node.filter_pattern or state.last_filter_pattern
+			if filter_type == "content" and pattern then
+				vim.cmd("/" .. rg_to_vim_pattern(pattern))
 			end
 		end,
 	})
