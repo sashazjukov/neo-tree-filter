@@ -133,6 +133,26 @@ local function scan_directory(root, pattern, search_content)
 	}
 end
 
+M.content_matches_in_file = function(path, pattern)
+	local output = vim.fn.systemlist({ "rg", "-i", "--column", "-n", "--", pattern, path })
+	if vim.v.shell_error ~= 0 and vim.v.shell_error ~= 1 then
+		return {}
+	end
+	local entries = {}
+	for _, line in ipairs(output) do
+		local lnum, col, text = line:match("^(%d+):(%d+):(.*)$")
+		if lnum then
+			table.insert(entries, {
+				filename = path,
+				lnum = tonumber(lnum),
+				col = tonumber(col),
+				text = text,
+			})
+		end
+	end
+	return entries
+end
+
 M.filter_by_filename = function(root, pattern)
 	return scan_directory(root, pattern, false)
 end

@@ -11,7 +11,7 @@ Neovim plugin that adds a **regex-based file filtering** source to [neo-tree](ht
 - **Multiple stacked filters** — run several filters; each becomes its own top-level node in the tree.
 - **Word / visual selection filter** — start a search from the word under the cursor or from a visual selection (`<F12>ff`).
 - **Search history** — `Up`/`Down` navigate previously used patterns in the input box.
-- **Jump to match** — opening a content-filter result opens the file and jumps to the first match.
+- **Jump to match** — opening a content-filter result opens the file, jumps to the first match, and populates the window's **locallist** with every match (line + column), so you can cycle with `:lnext` / `:lprev`.
 - **Custom rendering** — devicons, highlighted filter term and match counts.
 
 ## Requirements
@@ -115,7 +115,7 @@ vim.keymap.set("n", "<f12>fe", ":Neotree neo-tree-filter <CR>", { desc = "NeoTre
 1. Press `<F12>fe` (or run `:Neotree neo-tree-filter`).
 2. Filename example: type `\.lua$` and press `Enter` → all Lua files in the project are shown.
 3. Content example: type `FixMe|HACK` and press `F12` → every file containing the pattern appears with match counts.
-4. Press `Enter` on a result file to open it (content results land on the first match).
+4. Press `Enter` on a result file to open it (content results land on the first match and fill the locallist for cycling with `:lnext`/`:lprev`).
 5. Press `<F11>c` on a filter node to drop that filter, or `<F11>a` to clear everything.
 
 ## How it works

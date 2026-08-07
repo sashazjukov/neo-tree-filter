@@ -192,6 +192,32 @@ M.clear_all_filters = function(state)
 	M.navigate(state, state.path)
 end
 
+local function set_loclist_for_match(path, pattern)
+	local entries = filter.content_matches_in_file(path, pattern)
+	vim.fn.setloclist(0, entries, " ")
+end
+
+local function open_loclist_window()
+	local file_win = vim.api.nvim_get_current_win()
+	for _, w in ipairs(vim.api.nvim_list_wins()) do
+		local info = vim.fn.getwininfo(w)[1]
+		if info and info.loclist == 1 then
+			return
+		end
+	end
+	vim.cmd("lwindow")
+	if vim.api.nvim_win_is_valid(file_win) then
+		vim.api.nvim_set_current_win(file_win)
+	end
+end
+
+local function search_pattern(pattern)
+	local ok, err = pcall(vim.cmd, "/" .. rg_to_vim_pattern(pattern))
+	if not ok then
+		vim.notify("Pattern not supported by Vim search: " .. pattern, vim.log.levels.WARN)
+	end
+end
+
 M.open_and_search = function(state)
 	local tree = state.tree
 	local node = tree:get_node()
@@ -202,7 +228,12 @@ M.open_and_search = function(state)
 	vim.cmd("edit " .. path)
 
 	if filter_type == "content" and pattern then
-		vim.cmd("/" .. rg_to_vim_pattern(pattern))
+		set_loclist_for_match(path, pattern)
+		open_loclist_window()
+		search_pattern(pattern)
+	else
+		vim.fn.setloclist(0, {}, " ")
+		vim.cmd("lclose")
 	end
 end
 
@@ -296,7 +327,12 @@ M.setup = function(config, global_config)
 			local filter_type = node and node.filter_type or state.last_filter_type
 			local pattern = node and node.filter_pattern or state.last_filter_pattern
 			if filter_type == "content" and pattern then
-				vim.cmd("/" .. rg_to_vim_pattern(pattern))
+				set_loclist_for_match(args, pattern)
+				open_loclist_window()
+				search_pattern(pattern)
+			else
+				vim.fn.setloclist(0, {}, " ")
+				vim.cmd("lclose")
 			end
 		end,
 	})
