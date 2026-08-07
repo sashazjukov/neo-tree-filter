@@ -117,6 +117,12 @@ M.open = function(opts)
 	for _, mode in ipairs({ "i", "n" }) do
 		input:map(mode, "<Enter>", submit_filename, { noremap = true })
 		input:map(mode, "<F12>", submit_content, { noremap = true })
+		input:map("i", "<Up>", function()
+			navigate_history("up")
+		end, { noremap = true })
+		input:map("i", "<Down>", function()
+			navigate_history("down")
+		end, { noremap = true })
 		input:map("n", "<Up>", function()
 			navigate_history("up")
 		end, { noremap = true })
@@ -136,6 +142,13 @@ M.open = function(opts)
 
 	input:mount()
 	vim.cmd("startinsert!")
+
+	vim.schedule(function()
+		if input.winid and vim.api.nvim_win_is_valid(input.winid) then
+			vim.api.nvim_set_current_win(input.winid)
+			vim.cmd("startinsert!")
+		end
+	end)
 
 	vim.schedule(function()
 		if vim.api.nvim_win_is_valid(parent_win) then
