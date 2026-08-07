@@ -94,13 +94,13 @@ The plugin registers the following mappings while the `neo-tree-filter` source i
 | Keymap              | Action                                                        |
 |---------------------|---------------------------------------------------------------|
 | `f`                 | Open the filter input box again (add another filter)          |
+| `<F11>c`            | Clear the filter node under the cursor                        |
+| `<F11>a`            | Clear **all** filter nodes                                    |
 | `<F12>ff` (normal)  | Filter by the word under the cursor                           |
 | `<F12>ff` (visual)  | Filter by the visual selection                                |
-| `<F12>fca`          | Clear **all** filter nodes                                    |
-| `<F12>fcc`          | Clear the filter node under the cursor                        |
 | `Enter` on a file   | Open the file (content results jump to the first match)       |
 
-Note: the `<F12>...` mappings are set up for you when the source is initialized.
+`f`, `<F11>c`, and `<F11>a` are buffer-local — they only work while the filter tree is focused. The `<F12>...` mappings are global.
 
 ### Reference keymap from this setup
 
@@ -116,7 +116,7 @@ vim.keymap.set("n", "<f12>fe", ":Neotree neo-tree-filter <CR>", { desc = "NeoTre
 2. Filename example: type `\.lua$` and press `Enter` → all Lua files in the project are shown.
 3. Content example: type `FixMe|HACK` and press `F12` → every file containing the pattern appears with match counts.
 4. Press `Enter` on a result file to open it (content results land on the first match).
-5. Press `<F12>fcc` on a filter node to drop that filter, or `<F12>fca` to clear everything.
+5. Press `<F11>c` on a filter node to drop that filter, or `<F11>a` to clear everything.
 
 ## How it works
 
