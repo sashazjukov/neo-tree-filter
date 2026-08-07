@@ -197,13 +197,20 @@ local function set_loclist_for_match(path, pattern)
 	vim.fn.setloclist(0, entries, " ")
 end
 
-local function open_loclist_window()
-	local file_win = vim.api.nvim_get_current_win()
+local function loclist_window_open()
 	for _, w in ipairs(vim.api.nvim_list_wins()) do
 		local info = vim.fn.getwininfo(w)[1]
 		if info and info.loclist == 1 then
-			return
+			return true
 		end
+	end
+	return false
+end
+
+local function open_loclist_window()
+	local file_win = vim.api.nvim_get_current_win()
+	if loclist_window_open() then
+		return
 	end
 	vim.cmd("lwindow")
 	if vim.api.nvim_win_is_valid(file_win) then
@@ -334,6 +341,54 @@ M.setup = function(config, global_config)
 				vim.fn.setloclist(0, {}, " ")
 				vim.cmd("lclose")
 			end
+		end,
+	})
+
+	vim.api.nvim_create_autocmd("BufEnter", {
+		group = vim.api.nvim_create_augroup("NeoTreeFilterLoclist", { clear = true }),
+		desc = "refresh locallist matches for the buffer being entered",
+		callback = function()
+			local state = manager.get_state(M.name)
+			if not state or state.last_filter_type ~= "content" or not state.last_filter_pattern then
+				return
+			end
+			if vim.bo.buftype ~= "" then
+				return
+			end
+			local path = vim.api.nvim_buf_get_name(0)
+			if path == "" or vim.fn.filereadable(path) ~= 1 then
+				return
+			end
+			if not loclist_window_open() then
+				return
+			end
+			local winid = vim.api.nvim_get_current_win()
+			local pattern = state.last_filter_pattern
+			vim.schedule(function()
+				if not vim.api.nvim_win_is_valid(winid) then
+					return
+				end
+				local entries = filter.content_matches_in_file(path, pattern)
+				vim.fn.setloclist(winid, entries, " ")
+			end)
+		end,
+	})
+
+	vim.api.nvim_create_autocmd("BufEnter", {
+		group = vim.api.nvim_create_augroup("NeoTreeFilterLoclistMouse", { clear = true }),
+		desc = "enable mouse double-click jump in the locallist window",
+		callback = function()
+			if vim.bo.buftype ~= "quickfix" then
+				return
+			end
+			local wininfo = vim.fn.getwininfo(vim.api.nvim_get_current_win())[1]
+			if not (wininfo and wininfo.loclist == 1) then
+				return
+			end
+			vim.keymap.set("n", "<2-LeftMouse>", ":.ll<CR>", {
+				buffer = 0,
+				desc = "jump to locallist entry under cursor",
+			})
 		end,
 	})
 end

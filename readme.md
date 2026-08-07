@@ -11,7 +11,7 @@ Neovim plugin that adds a **regex-based file filtering** source to [neo-tree](ht
 - **Multiple stacked filters** — run several filters; each becomes its own top-level node in the tree.
 - **Word / visual selection filter** — start a search from the word under the cursor or from a visual selection (`<F12>ff`).
 - **Search history** — `Up`/`Down` navigate previously used patterns in the input box.
-- **Jump to match** — opening a content-filter result opens the file, jumps to the first match, and populates the window's **locallist** with every match (line + column), so you can cycle with `:lnext` / `:lprev`.
+- **Jump to match** — opening a content-filter result opens the file, jumps to the first match, and populates the window's **locallist** with every match (line + column), so you can cycle with `:lnext` / `:lprev` or double-click an entry. The locallist follows buffer switches (`:bnext`/`:bprev` etc.) while a content filter is active, refreshing to the current buffer's matches.
 - **Custom rendering** — devicons, highlighted filter term and match counts.
 
 ## Requirements
