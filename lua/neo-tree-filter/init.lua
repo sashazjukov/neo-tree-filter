@@ -126,6 +126,14 @@ M.navigate = function(state, path)
 		M.open_filter_input(state)
 	end, { buffer = state.tree.bufnr, noremap = true, desc = "show filter input" })
 
+	vim.keymap.set("n", "<F11>c", function()
+		M.remove_filter_node(state)
+	end, { buffer = state.tree.bufnr, noremap = true, desc = "remove filter node under cursor" })
+
+	vim.keymap.set("n", "<F11>a", function()
+		M.clear_all_filters(state)
+	end, { buffer = state.tree.bufnr, noremap = true, desc = "clear all filter nodes" })
+
 	if previous_win and vim.api.nvim_win_is_valid(previous_win) then
 		vim.api.nvim_set_current_win(previous_win)
 	end
@@ -151,6 +159,37 @@ M.open_filter_input = function(state, filter_type)
 		end,
 		on_close = function() end,
 	})
+end
+
+M.remove_filter_node = function(state)
+	if not (state and state.tree) then
+		return
+	end
+	local node = state.tree:get_node()
+	if not node then
+		return
+	end
+	local node_id = node:get_id()
+	for i, f in ipairs(state.filters) do
+		local prefix = f.id .. "|"
+		if node_id == f.id or node_id:sub(1, #prefix) == prefix then
+			table.remove(state.filters, i)
+			break
+		end
+	end
+	state.filter_pattern = ""
+	M.navigate(state, state.path)
+end
+
+M.clear_all_filters = function(state)
+	if not state then
+		return
+	end
+	state.filters = {}
+	state.filter_pattern = ""
+	state.last_filter_pattern = nil
+	state.last_filter_type = nil
+	M.navigate(state, state.path)
 end
 
 M.open_and_search = function(state)
@@ -221,37 +260,6 @@ M.setup = function(config, global_config)
 			M.open_filter_input(state)
 		end
 	end, { desc = "Filter neo-tree with visual selection" })
-
-	vim.keymap.set("n", "<F12>fca", function()
-		local state = manager.get_state(M.name)
-		if state then
-			state.filters = {}
-			state.filter_pattern = ""
-			state.last_filter_pattern = nil
-			state.last_filter_type = nil
-			M.navigate(state, state.path)
-		end
-	end, { desc = "Remove all filter nodes" })
-
-	vim.keymap.set("n", "<F12>fcc", function()
-		local state = manager.get_state(M.name)
-		if state and state.tree then
-			local node = state.tree:get_node()
-			if not node then
-				return
-			end
-			local node_id = node:get_id()
-			for i, f in ipairs(state.filters) do
-				local prefix = f.id .. "|"
-				if node_id == f.id or node_id:sub(1, #prefix) == prefix then
-					table.remove(state.filters, i)
-					break
-				end
-			end
-			state.filter_pattern = ""
-			M.navigate(state, state.path)
-		end
-	end, { desc = "Remove current filter node" })
 
 	local function find_node_by_path(node, path)
 		if node.path == path then
