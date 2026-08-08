@@ -4,6 +4,9 @@ Neovim plugin that adds a **regex-based file filtering** source to [neo-tree](ht
 
 ![Type](https://img.shields.io/badge/type-plugin-informational.svg)
 
+![Content filter demo](Image-0.png)
+![Filename filter demo](Image-1.png)
+
 ## Features
 
 - **Filename filtering** — submit a regex (`Enter`) and get every file whose name matches, shown as a directory tree.
@@ -63,7 +66,7 @@ return {
 }
 ```
 
-#### my config
+#### My config
 
 ```lua
 
@@ -129,6 +132,12 @@ Open the filter source with:
 
 ```vim
 :Neotree neo-tree-filter
+```
+Or use default neo-tree keymap to change neo-tree source
+
+```lua
+Shift + <
+Shift + >
 ```
 
 The first time you open it, a floating input box appears automatically. Type a regex and:
