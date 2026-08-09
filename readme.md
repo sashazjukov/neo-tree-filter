@@ -118,7 +118,7 @@ return {
 
 ```lua
 vim.keymap.set("n", "<A-j>", "<cmd>lnext<CR>zz", { desc = "_Next quick search" })
-vim.keymap.set("n", "<A-k>", "<cmd>cprev<CR>zz", { desc = "_Prev quick search" }) -- vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
+vim.keymap.set("n", "<A-k>", "<cmd>lprev<CR>zz", { desc = "_Prev quick search" }) -- vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
 
 
 ```
